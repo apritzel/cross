@@ -77,10 +77,10 @@ case "$system" in
 	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
-TARGET_LD_SUFFIX=""
+TBITS=""
 TRIPLET=${TARGET}-${vendor}-${os}
 case "$TARGET" in
-	x86_64|aarch64) TARGET_LD_SUFFIX="64";;
+	x86_64|aarch64) TBITS="64";;
 	armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
 	arm) TRIPLET=arm-${slackware}linux-gnueabi;;
 	openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
