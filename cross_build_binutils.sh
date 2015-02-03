@@ -56,7 +56,7 @@ else
 	[ -f "$testdir/configure" ] && SRC_PATH="$testdir"
 fi
 
-if [ ! -d "$SRC_PATH" ]
+if [ ! -d "$SRC_PATH" -a -z "$skipbuild" ]
 then
 	echo "Error: could not find source directory."
 	echo "Give the source path as an argument."
