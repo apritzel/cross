@@ -100,13 +100,22 @@ esac
 HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 # no docs for x-compilers, was: --mandir=/usr/man --infodir=/usr/info
 
+LIBPATH=/usr/$TRIPLET/lib$HBITS
+LIBPATH="$LIBPATH:$SYSROOT/usr/local/$LIBDIR"
+LIBPATH="$LIBPATH:$SYSROOT/$LIBDIR"
+LIBPATH="$LIBPATH:$SYSROOT/usr/$LIBDIR"
+
+#
+# CONFIGURE
+#
+
 $SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
 	--build=$HTRIPLET --host=$HTRIPLET \
 	--enable-plugins --enable-threads --disable-nls \
 	--enable-gold=yes --enable-ld=default \
 	--disable-bootstrap --disable-shared --enable-multilib \
 	--with-sysroot=$SYSROOT \
-	--with-lib-path=/usr/$TRIPLET/lib$HBITS:$SYSROOT/usr/local/$LIBDIR:$SYSROOT/$LIBDIR:$SYSROOT/usr/$LIBDIR
+	--with-lib-path=$LIBPATH
 
 make $NUMJOBS
 
