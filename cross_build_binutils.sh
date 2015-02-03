@@ -183,14 +183,14 @@ fi
 
 [ "$package" = "debian" ] || exit 1
 
-mkdir debian debian/control
+mkdir -p debian/control
 (	cd root
 	find * -type f | sort | xargs md5sum > ../debian/control/md5sums
 	tar c -J --owner=root --group=root -f ../debian/data.tar.xz ./
 )
 SIZE=`du -s root | cut -f1`
 
-cat > debian/control/control << _EOF
+[ -f debian/control/control ] || cat > debian/control/control << _EOF
 Package: $PKGNAM-$TRIPLET
 Source: $PKGNAM
 Version: $VERSION
