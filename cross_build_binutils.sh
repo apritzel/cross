@@ -153,7 +153,8 @@ fi
 (	cd root
 	rm -Rf usr/include usr/man usr/info usr/share
 	find ./ | xargs file | grep -e "executable" -e "shared object" \
-		| grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+		| grep ELF | cut -f 1 -d : \
+		| xargs strip --strip-unneeded 2> /dev/null
 )
 
 if [ "$package" = "slackware" ]
