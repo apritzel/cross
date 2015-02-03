@@ -1,0 +1,170 @@
+#!/bin/sh
+
+PKGNAM=binutils
+VERSION=${VERSION:-"2.25"}
+BUILD=${BUILD:-"1"}
+CC=${CC:-"gcc"}
+
+TARGET=${TARGET:-"aarch64"}
+SYSROOT=/usr/gnemul/$TARGET
+
+NUMJOBS=${NUMJOBS:-"8"}
+NUMJOBS="-j$NUMJOBS"
+
+if [ "x$1" = 'x-h' ]
+then
+	echo "usage: $0 [package|debian|slackware] [source path]"
+	exit 1
+fi
+
+[ -f /etc/debian_version ] && system="debian"
+[ -f /etc/slackware-version ] && system="slackware"
+if [ $# -gt 0 ]; then
+	case "$1" in
+		debian) package="debian" ;;
+		slackware) package="slackware" ;;
+		package) package=$system ;;
+		*) echo "unknown package system \"$1\"" ;;
+	esac
+	shift
+fi
+
+if [ -d "$1" ]
+then
+	SRC_PATH="$1"
+else
+	testdir=../${PKGNAM}.git
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}-gdb.git
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}-gdb
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}-${VERSION}
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+fi
+
+if [ ! -d "$SRC_PATH" ]
+then
+	echo "Error: could not find source directory."
+	echo "Give the source path as an argument."
+	exit 1
+fi
+
+LIBBITNESS=""
+MARCH=`uname -m`
+case "$MARCH" in
+	i?86) MARCH=i486 ;;
+	aarch64) LIBBITNESS="64" ;;
+	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && MARCH="amd64" ;;
+	arm*) MARCH=arm ;;
+esac
+HTRIPLET=`$CC -dumpmachine`
+
+case "$system" in
+	slackware) vendor="slackware"; os="linux"; slackware="slackware-" ;;
+	*) vendor="linux"; os="gnu"; LIBBITNESS="" ;;
+esac
+
+TARGET_LD_SUFFIX=""
+TRIPLET=${TARGET}-${vendor}-${os}
+case "$TARGET" in
+	x86_64|aarch64) TARGET_LD_SUFFIX="64";;
+	armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
+	arm) TRIPLET=arm-${slackware}linux-gnueabi;;
+	openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
+esac
+
+HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
+case "$system" in
+	slackware)
+		LIBDIR="lib$LIBBITNESS"
+		HOST_OPTS="$HOST_OPTS --disable-multiarch"
+		;;
+	debian)
+		LIBDIR="lib/$HTRIPLET"
+		HOST_OPTS="$HOST_OPTS --enable-multiarch"
+		;;
+esac
+HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
+# no docs for x-compilers, was: --mandir=/usr/man --infodir=/usr/info
+
+$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
+	--build=$HTRIPLET --host=$HTRIPLET \
+	--enable-plugins --enable-threads --disable-nls \
+	--enable-gold=yes --enable-ld=default \
+	--disable-bootstrap --disable-shared --enable-multilib \
+	--with-sysroot=$SYSROOT \
+	--with-lib-path=/usr/$TRIPLET/lib$LIBBITNESS:$SYSROOT/usr/local/$LIBDIR:$SYSROOT/$LIBDIR:$SYSROOT/usr/$LIBDIR
+
+make $NUMJOBS
+
+[ -d ./root ] && rm -Rf ./root
+mkdir root
+make DESTDIR=`pwd`/root install
+
+mkdir -p root/usr/gnemul/$TARGET
+
+[ -z "$package" ] && exit 0
+
+(	cd root
+	rm -Rf usr/include usr/man usr/info usr/share
+	find ./ | xargs file | grep -e "executable" -e "shared object" \
+		| grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+)
+
+if [ "$package" = "slackware" ]
+then
+
+	SLACKVER=`. /etc/os-release; echo $VERSION`
+	PKGNAME="$PKGNAM-$TARGET"
+	mkdir root/install
+	cat > root/install/slack-desc << _EOF
+$PKGNAME: binutils for the $TARGET architecture
+$PKGNAME:
+$PKGNAME: Binutils is a collection of binary utilities.  It includes "as"
+$PKGNAME: (the portable GNU assembler), "ld" (the GNU linker), and other
+$PKGNAME: utilities for creating and working with binary programs.
+$PKGNAME: This version deals and creates with binaries and object files
+$PKGNAME: for the $TARGET architecture.
+$PKGNAME: Target is: $TRIPLET
+$PKGNAME: sysroot: $SYSROOT
+$PKGNAME: Version $VERSION for Slackware$LIBBITNESS $SLACKVER
+$PKGNAME:
+_EOF
+
+	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$MARCH-$BUILD.txz)
+	exit 0
+fi
+
+[ "$package" = "debian" ] || exit 1
+
+mkdir debian debian/control
+(	cd root
+	find * -type f | sort | xargs md5sum > ../debian/control/md5sums
+	tar c -J --owner=root --group=root -f ../debian/data.tar.xz ./
+)
+SIZE=`du -s root | cut -f1`
+
+cat > debian/control/control << _EOF
+Package: $PKGNAM-$TRIPLET
+Source: $PKGNAM
+Version: $VERSION
+Installed-Size: $SIZE
+Maintainer: Andre Przywara <osp@andrep.de>
+Architecture: $MARCH
+Depends: libc6, zlib1g (>= 1:1.1.4)
+Built-Using: binutils
+Section: devel
+Priority: extra
+Description: GNU binary utilities, for $TRIPLET target
+ This package provides GNU assembler, linker and binary utilities
+ for the $TRIPLET target, for use in a cross-compilation environment.
+ .
+ You don't need this package unless you plan to cross-compile programs
+ for $TRIPLET.
+_EOF
+(cd debian/control; tar c -z --owner=root --group=root -f ../control.tar.gz *)
+echo "2.0" > debian/debian-binary
+(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${MARCH}.deb debian-binary control.tar.gz data.tar.xz)

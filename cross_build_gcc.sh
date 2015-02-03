@@ -1,0 +1,201 @@
+#!/bin/sh
+
+PKGNAM=gcc
+VERSION=${VERSION:-"4.9.2"}
+BUILD=${BUILD:-"1"}
+CC=${CC:-"gcc"}
+
+TARGET=${TARGET:-"aarch64"}
+SYSROOT=/usr/gnemul/$TARGET
+
+NUMJOBS=${NUMJOBS:-"8"}
+NUMJOBS="-j$NUMJOBS"
+
+if [ $# -eq 0 ]
+then
+	echo "usage: $0 [package] stage[12] [source path]"
+	exit 1
+fi
+
+[ -f /etc/debian_version ] && system="debian"
+[ -f /etc/slackware-version ] && system="slackware"
+case "$1" in
+	debian) package="debian"; shift ;;
+	slackware) package="slackware"; shift ;;
+	package) package=$system; shift ;;
+esac
+
+stage="$1"
+shift
+
+if [ -d "$1" ]
+then
+	SRC_PATH="$1"
+else
+	testdir=../${PKGNAM}.git
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	testdir=../${PKGNAM}-${VERSION}
+	[ -d "$testdir" ] && SRC_PATH="$testdir"
+fi
+
+if [ ! -d "$SRC_PATH" ]
+then
+	echo "Error: could not find source directory."
+	echo "Give the source path as an argument."
+	exit 1
+fi
+
+LIBBITNESS=""
+MARCH=`uname -m`
+case "$MARCH" in
+	i?86) MARCH=i486 ;;
+	aarch64) LIBBITNESS="64" ;;
+	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && MARCH="amd64" ;;
+	arm*) MARCH=arm ;;
+esac
+HTRIPLET=`${CC} -dumpmachine`
+
+case "$system" in
+	slackware) vendor="slackware"; os="linux"; slackware="slackware-" ;;
+	*) vendor="linux"; os="gnu"; LIBBITNESS="" ;;
+esac
+
+TARGET_LD_SUFFIX=""
+TRIPLET=${TARGET}-${vendor}-${os}
+case "$TARGET" in
+	x86_64|aarch64) TARGET_LD_SUFFIX="64" ;;
+	armhf) TRIPLET=arm-${slackware}linux-gnueabihf
+		ADD_OPTS="--with-arch=armv7-a --with-float=hard" ;;
+	arm) TRIPLET=arm-${slackware}linux-gnueabi
+		ADD_OPTS="--with-float=softfp" ;;
+	openwrt) TRIPLET=mips-openwrt-linux-uclibc ;;
+	mips64) ADD_OPTS="--with-abi=64" ;;
+esac
+
+HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
+case "$system" in
+	slackware)
+		LIBDIR="lib$LIBBITNESS"
+		HOST_OPTS="$HOST_OPTS --disable-multiarch"
+		;;
+	debian)
+		LIBDIR="lib/$HTRIPLET"
+		HOST_OPTS="$HOST_OPTS --enable-multiarch"
+		;;
+esac
+HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
+
+[ -d ./root ] && rm -Rf ./root
+mkdir root
+case "$stage" in
+	stage1)
+		$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
+			--build=$HTRIPLET --host=$HTRIPLET \
+			--disable-shared --disable-threads \
+			--disable-bootstrap --enable-multilib \
+			--with-sysroot=$SYSROOT --with-newlib --without-headers \
+			--enable-languages=c --disable-nls \
+			--disable-libgomp --disable-libitm --disable-libquadmath \
+			--disable-libsanitizer --disable-libssp --disable-libvtv \
+			--disable-libcilkrts --disable-libatomic --with-system-zlib \
+			$ADD_OPTS
+
+#			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:$SYSROOT/usr/local/lib$LIBDIRSUFFIX:$SYSROOT/lib$LIBDIRSUFFIX:$SYSROOT/usr/lib$LIBDIRSUFFIX
+
+		make $NUMJOBS all-gcc all-target-libgcc
+		make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
+		PKGDESC1="This compiler has no notion of a libc, so it just works for"
+		PKGDESC2="self-hosting binaries like the Linux kernels or bootloaders."
+		PKGNAME="$PKGNAM-stage1"
+		;;
+	stage2)
+		$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
+			--host=$HTRIPLET --build=$HTRIPLET \
+			--with-sysroot=$SYSROOT --disable-bootstrap \
+			--enable-languages=c --enable-multilib \
+			--enable-shared --disable-nls --with-system-zlib \
+			$ADD_OPTS
+
+#			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:/usr/local/lib$LIBDIRSUFFIX:/lib$LIBDIRSUFFIX:/usr/lib$LIBDIRSUFFIX
+		make $NUMJOBS
+		make DESTDIR=$(pwd)/root install
+		PKGDESC1="This compiler requires a set of target libraries installed"
+		PKGDESC2="in $SYSROOT to create user-land binaries."
+		PKGNAME="$PKGNAM"
+		;;
+	skip_build)
+		PKGDESC1="This compiler has no notion of a libc, so it just works for"
+		PKGDESC2="self-hosting binaries like the Linux kernels or bootloaders."
+		PKGNAME="$PKGNAM-stage1"
+		;;
+	*)
+		echo "unknown stage \"$1\""
+		exit 2
+		;;
+esac
+
+mkdir -p root/usr/gnemul/$TARGET
+
+[ -z "$package" ] && exit 0
+
+(cd root
+	rm -Rf usr/include usr/man usr/info
+	rm -Rf usr/share/man usr/share/info
+	rmdir usr/share 2> /dev/null
+	rm -f usr/$LIBDIR/libiberty.a
+	find ./ | xargs file | grep -e "executable" -e "shared object" \
+	| grep ELF | cut -f 1 -d : | xargs strip --strip-unneeded 2> /dev/null
+)
+
+if [ "$package" = "slackware" ]
+then
+	PKGNAME="${PKGNAME}-${TRIPLET}"
+	mkdir root/install
+	cat > root/install/slack-desc << _EOF
+$PKGNAME: $TARGET-gcc (GNU C cross compiler)
+$PKGNAME:
+$PKGNAME: GCC is the GNU Compiler Collection. This is a version 4 compiler
+$PKGNAME: generating code for CPUs using the $TARGET architecture.
+$PKGNAME: $PKGDESC1
+$PKGNAME: $PKGDESC2
+$PKGNAME: Target is: $TRIPLET
+$PKGNAME: Version $VERSION
+$PKGNAME:
+_EOF
+	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$MARCH-$BUILD.txz)
+	exit 0
+fi
+
+[ "$package" = "debian" ] || exit 1
+
+mkdir debian debian/control
+(	cd root
+	find * -type f | sort | xargs md5sum > ../debian/control/md5sums
+	tar c -J --owner=root --group=root -f ../debian/data.tar.xz ./
+)
+SIZE=`du -s root | cut -f1`
+
+cat > debian/control/control << _EOF
+Package: $PKGNAME-$TRIPLET
+Source: $PKGNAM-$VERSION
+Version: $VERSION
+Installed-Size: $SIZE
+Maintainer: Andre Przywara <osp@andrep.de>
+Architecture: $MARCH
+Depends: binutils-aarch64-linux-gnu (>= 2.21.1), libc6, libgmp10, libmpc2, libmpfr4 (>= 2.4.0), zlib1g (>= 1:1.1.4)
+Built-Using: binutils
+Section: devel
+Priority: extra
+Description: GNU C compiler for the $TRIPLET target
+ This is the GNU C compiler, a fairly portable optimizing compiler for C.
+ .
+ This package contains the C cross-compiler for the $TARGET architecture.
+ $PKGDESC1
+ $PKGDESC2
+_EOF
+
+(cd debian/control; tar c -z --owner=root --group=root -f ../control.tar.gz *)
+echo "2.0" > debian/debian-binary
+(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${MARCH}.deb debian-binary control.tar.gz data.tar.xz)
