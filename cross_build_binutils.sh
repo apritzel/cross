@@ -8,8 +8,16 @@ CC=${CC:-"gcc"}
 TARGET=${TARGET:-"aarch64"}
 SYSROOT=/usr/gnemul/$TARGET
 
-NUMJOBS=${NUMJOBS:-"8"}
-NUMJOBS="-j$NUMJOBS"
+if [ -z "$NUMJOBS" ]
+then
+	NUMJOBS=`getconf _NPROCESSORS_ONLN 2> /dev/null`
+	if [ $? -ne 0 ]
+	then
+		NUMJOBS=`grep -c ^processor /proc/cpuinfo 2> /dev/null`
+		[ $? -ne 0 ] && NUMJOBS=2
+	fi
+	NUMJOBS=$((NUMJOBS*2))
+fi
 
 if [ "x$1" = 'x-h' ]
 then
