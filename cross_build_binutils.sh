@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# script for building cross binutils packages
+# skip to CONFIGURE line below for the interesting part
+#
 
 PKGNAM=binutils
 VERSION=${VERSION:-"2.25"}
