@@ -63,19 +63,18 @@ then
 	exit 1
 fi
 
-LIBBITNESS=""
-MARCH=`uname -m`
-case "$MARCH" in
-	i?86) MARCH=i486 ;;
-	aarch64) LIBBITNESS="64" ;;
-	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && MARCH="amd64" ;;
-	arm*) MARCH=arm ;;
+HARCH=`uname -m`
+case "$HARCH" in
+	i?86) HARCH=i486 ;;
+	aarch64) HBITS="64" ;;
+	x86_64) HBITS="64"; [ "$system" = "debian" ] && HARCH="amd64" ;;
+	arm*) HARCH=arm ;;
 esac
 HTRIPLET=`$CC -dumpmachine`
 
 case "$system" in
 	slackware) vendor="slackware"; os="linux"; slackware="slackware-" ;;
-	*) vendor="linux"; os="gnu"; LIBBITNESS="" ;;
+	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
 TARGET_LD_SUFFIX=""
@@ -90,7 +89,7 @@ esac
 HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
 case "$system" in
 	slackware)
-		LIBDIR="lib$LIBBITNESS"
+		LIBDIR="lib$HBITS"
 		HOST_OPTS="$HOST_OPTS --disable-multiarch"
 		;;
 	debian)
@@ -107,7 +106,7 @@ $SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
 	--enable-gold=yes --enable-ld=default \
 	--disable-bootstrap --disable-shared --enable-multilib \
 	--with-sysroot=$SYSROOT \
-	--with-lib-path=/usr/$TRIPLET/lib$LIBBITNESS:$SYSROOT/usr/local/$LIBDIR:$SYSROOT/$LIBDIR:$SYSROOT/usr/$LIBDIR
+	--with-lib-path=/usr/$TRIPLET/lib$HBITS:$SYSROOT/usr/local/$LIBDIR:$SYSROOT/$LIBDIR:$SYSROOT/usr/$LIBDIR
 
 make $NUMJOBS
 
@@ -141,11 +140,11 @@ $PKGNAME: This version deals and creates with binaries and object files
 $PKGNAME: for the $TARGET architecture.
 $PKGNAME: Target is: $TRIPLET
 $PKGNAME: sysroot: $SYSROOT
-$PKGNAME: Version $VERSION for Slackware$LIBBITNESS $SLACKVER
+$PKGNAME: Version $VERSION for Slackware$HBITS $SLACKVER
 $PKGNAME:
 _EOF
 
-	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$MARCH-$BUILD.txz)
+	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$HARCH-$BUILD.txz)
 	exit 0
 fi
 
@@ -164,7 +163,7 @@ Source: $PKGNAM
 Version: $VERSION
 Installed-Size: $SIZE
 Maintainer: Andre Przywara <osp@andrep.de>
-Architecture: $MARCH
+Architecture: $HARCH
 Depends: libc6, zlib1g (>= 1:1.1.4)
 Built-Using: binutils
 Section: devel
@@ -178,4 +177,4 @@ Description: GNU binary utilities, for $TRIPLET target
 _EOF
 (cd debian/control; tar c -z --owner=root --group=root -f ../control.tar.gz *)
 echo "2.0" > debian/debian-binary
-(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${MARCH}.deb debian-binary control.tar.gz data.tar.xz)
+(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${HARCH}.deb debian-binary control.tar.gz data.tar.xz)
