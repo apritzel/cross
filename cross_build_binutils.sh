@@ -109,19 +109,41 @@ LIBPATH="$LIBPATH:$SYSROOT/usr/$LIBDIR"
 # CONFIGURE
 #
 
-$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
-	--build=$HTRIPLET --host=$HTRIPLET \
-	--enable-plugins --enable-threads --disable-nls \
-	--enable-gold=yes --enable-ld=default \
-	--disable-bootstrap --disable-shared --enable-multilib \
-	--with-sysroot=$SYSROOT \
-	--with-lib-path=$LIBPATH
+if [ -z "$skipbuild" ]
+then
+	if ! $SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
+		--build=$HTRIPLET --host=$HTRIPLET \
+		--enable-plugins --enable-threads --disable-nls \
+		--enable-gold=yes --enable-ld=default \
+		--disable-bootstrap --disable-shared --enable-multilib \
+		--with-sysroot=$SYSROOT \
+		--with-lib-path=$LIBPATH
+	then
+		echo -e "\nconfigure failed, aborting."
+		exit 2
+	fi
 
-make $NUMJOBS
+	if ! make -j"$NUMJOBS"
+	then
+		echo -e "\nbuild failed, aborting."
+		exit 3
+	fi
 
-[ -d ./root ] && rm -Rf ./root
-mkdir root
-make DESTDIR=`pwd`/root install
+	rm -Rf ./root
+	mkdir root
+	if ! make DESTDIR=`pwd`/root install
+	then
+		echo -e "\ninstallation failed, aborting."
+		exit 4
+	fi
+
+	CROSSLD=./root/usr/bin/${TRIPLET}-ld
+	if [ ! -x $CROSSLD ] || $CROSSLD -v | grep -qv "$VERSION\$"
+	then
+		echo -e "\ncross ld binary failing"
+		exit 5
+	fi
+fi
 
 mkdir -p root/usr/gnemul/$TARGET
 
