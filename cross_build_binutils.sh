@@ -19,23 +19,26 @@ then
 	NUMJOBS=$((NUMJOBS*2))
 fi
 
-if [ "x$1" = 'x-h' ]
-then
-	echo "usage: $0 [package|debian|slackware] [source path]"
-	exit 1
-fi
-
 [ -f /etc/debian_version ] && system="debian"
 [ -f /etc/slackware-version ] && system="slackware"
-if [ $# -gt 0 ]; then
-	case "$1" in
-		debian) package="debian" ;;
-		slackware) package="slackware" ;;
-		package) package=$system ;;
-		*) echo "unknown package system \"$1\"" ;;
-	esac
-	shift
-fi
+
+usage() {
+	echo "usage: $0 help|build|package|repackage|deb|slackpkg [source path]"
+}
+
+case "$1" in
+	-h|help) usage
+		 echo " [source path]"
+		 exit 0
+		;;
+	build) package="" ;;
+	deb) package="debian" ;;
+	slackpkg) package="slackware" ;;
+	package) package="$system" ;;
+	repackage) skipbuild="1"; package="$system" ;;
+	*) echo "unknown command: \"$1\""; usage; exit 2 ;;
+esac
+shift
 
 if [ -d "$1" ]
 then
