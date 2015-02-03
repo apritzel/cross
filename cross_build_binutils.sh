@@ -102,7 +102,6 @@ case "$system" in
 		;;
 esac
 HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
-# no docs for x-compilers, was: --mandir=/usr/man --infodir=/usr/info
 
 LIBPATH=/usr/$TRIPLET/lib$HBITS
 LIBPATH="$LIBPATH:$SYSROOT/usr/local/$LIBDIR"
