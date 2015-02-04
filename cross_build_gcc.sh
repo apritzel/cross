@@ -254,4 +254,6 @@ _EOF
 
 (cd debian/control; tar c -z --owner=root --group=root -f ../control.tar.gz *)
 echo "2.0" > debian/debian-binary
-(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${HARCH}.deb debian-binary control.tar.gz data.tar.xz)
+PKGNAME=${PKGNAME}-${TRIPLET}_${VERSION}-${BUILD}_${HARCH}.deb
+rm -f $PKGNAME
+(cd debian; ar q ../$PKGNAME debian-binary control.tar.gz data.tar.xz)
