@@ -118,7 +118,7 @@ HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 # CONFIGURE
 #
 
-[ -d ./root ] && rm -Rf ./root
+rm -Rf ./root
 mkdir root
 case "$stage" in
 	stage1)
