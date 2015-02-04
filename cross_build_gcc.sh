@@ -229,7 +229,7 @@ fi
 mkdir -p debian/control
 (	cd root
 	find * -type f | sort | xargs md5sum > ../debian/control/md5sums
-	tar c -J --owner=root --group=root -f ../debian/data.tar.xz ./
+	tar c -z --owner=root --group=root -f ../debian/data.tar.gz ./
 )
 SIZE=`du -s root | cut -f1`
 
@@ -256,4 +256,4 @@ _EOF
 echo "2.0" > debian/debian-binary
 PKGNAME=${PKGNAME}-${TRIPLET}_${VERSION}-${BUILD}_${HARCH}.deb
 rm -f $PKGNAME
-(cd debian; ar q ../$PKGNAME debian-binary control.tar.gz data.tar.xz)
+(cd debian; ar q ../$PKGNAME debian-binary control.tar.gz data.tar.gz)
