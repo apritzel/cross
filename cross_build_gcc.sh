@@ -126,11 +126,14 @@ case "$stage" in
 			--build=$HTRIPLET --host=$HTRIPLET \
 			--disable-shared --disable-threads \
 			--disable-bootstrap --enable-multilib \
-			--with-sysroot=$SYSROOT --with-newlib --without-headers \
+			--with-sysroot=$SYSROOT \
+			--with-newlib --without-headers \
 			--enable-languages=c --disable-nls \
-			--disable-libgomp --disable-libitm --disable-libquadmath \
-			--disable-libsanitizer --disable-libssp --disable-libvtv \
-			--disable-libcilkrts --disable-libatomic --with-system-zlib \
+			--disable-libgomp --disable-libitm \
+			--disable-libquadmath --disable-libsanitizer \
+			--disable-libssp --disable-libvtv \
+			--disable-libcilkrts --disable-libatomic \
+			--with-system-zlib \
 			$ADD_OPTS
 
 #			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:$SYSROOT/usr/local/lib$LIBDIRSUFFIX:$SYSROOT/lib$LIBDIRSUFFIX:$SYSROOT/usr/lib$LIBDIRSUFFIX
