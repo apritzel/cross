@@ -77,12 +77,12 @@ then
 fi
 
 LIBBITNESS=""
-MARCH=`uname -m`
-case "$MARCH" in
-	i?86) MARCH=i486 ;;
+HARCH=`uname -m`
+case "$HARCH" in
+	i?86) HARCH=i486 ;;
 	aarch64) LIBBITNESS="64" ;;
-	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && MARCH="amd64" ;;
-	arm*) MARCH=arm ;;
+	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && HARCH="amd64" ;;
+	arm*) HARCH=arm ;;
 esac
 HTRIPLET=`${CC} -dumpmachine`
 
@@ -197,7 +197,7 @@ $PKGNAME: Target is: $TRIPLET
 $PKGNAME: Version $VERSION
 $PKGNAME:
 _EOF
-	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$MARCH-$BUILD.txz)
+	(cd root; makepkg -c y -l y ../$PKGNAME-$VERSION-$HARCH-$BUILD.txz)
 	exit 0
 fi
 
@@ -216,7 +216,7 @@ Source: $PKGNAM-$VERSION
 Version: $VERSION
 Installed-Size: $SIZE
 Maintainer: Andre Przywara <osp@andrep.de>
-Architecture: $MARCH
+Architecture: $HARCH
 Depends: binutils-aarch64-linux-gnu (>= 2.21.1), libc6, libgmp10, libmpc2, libmpfr4 (>= 2.4.0), zlib1g (>= 1:1.1.4)
 Built-Using: binutils
 Section: devel
@@ -231,4 +231,4 @@ _EOF
 
 (cd debian/control; tar c -z --owner=root --group=root -f ../control.tar.gz *)
 echo "2.0" > debian/debian-binary
-(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${MARCH}.deb debian-binary control.tar.gz data.tar.xz)
+(cd debian; ar q ../${PKGNAM}-${TRIPLET}_${VERSION}-${BUILD}_${HARCH}.deb debian-binary control.tar.gz data.tar.xz)
