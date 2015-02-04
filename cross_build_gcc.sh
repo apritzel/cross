@@ -167,8 +167,6 @@ case "$stage" in
 		;;
 esac
 
-mkdir -p root/usr/gnemul/$TARGET
-
 [ -z "$package" ] && exit 0
 
 (cd root
