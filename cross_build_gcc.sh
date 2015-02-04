@@ -76,19 +76,18 @@ then
 	exit 1
 fi
 
-LIBBITNESS=""
 HARCH=`uname -m`
 case "$HARCH" in
 	i?86) HARCH=i486 ;;
-	aarch64) LIBBITNESS="64" ;;
-	x86_64) LIBBITNESS="64"; [ "$system" = "debian" ] && HARCH="amd64" ;;
+	aarch64) HBITS="64" ;;
+	x86_64) HBITS="64"; [ "$system" = "debian" ] && HARCH="amd64" ;;
 	arm*) HARCH=arm ;;
 esac
 HTRIPLET=`${CC} -dumpmachine`
 
 case "$system" in
 	slackware) vendor="slackware"; os="linux"; slackware="slackware-" ;;
-	*) vendor="linux"; os="gnu"; LIBBITNESS="" ;;
+	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
 TARGET_LD_SUFFIX=""
@@ -106,7 +105,7 @@ esac
 HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
 case "$system" in
 	slackware)
-		LIBDIR="lib$LIBBITNESS"
+		LIBDIR="lib$HBITS"
 		HOST_OPTS="$HOST_OPTS --disable-multiarch"
 		;;
 	debian)
