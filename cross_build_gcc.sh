@@ -136,8 +136,6 @@ case "$stage" in
 			--with-system-zlib \
 			$ADD_OPTS
 
-#			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:$SYSROOT/usr/local/lib$LIBDIRSUFFIX:$SYSROOT/lib$LIBDIRSUFFIX:$SYSROOT/usr/lib$LIBDIRSUFFIX
-
 		make -j$NUMJOBS all-gcc all-target-libgcc
 		make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
 		PKGDESC1="This compiler has no notion of a libc, so it just works for"
@@ -152,7 +150,6 @@ case "$stage" in
 			--enable-shared --disable-nls --with-system-zlib \
 			$ADD_OPTS
 
-#			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:/usr/local/lib$LIBDIRSUFFIX:/lib$LIBDIRSUFFIX:/usr/lib$LIBDIRSUFFIX
 		make -j$NUMJOBS
 		make DESTDIR=$(pwd)/root install
 		PKGDESC1="This compiler requires a set of target libraries installed"
