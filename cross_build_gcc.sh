@@ -12,8 +12,16 @@ CC=${CC:-"gcc"}
 TARGET=${TARGET:-"aarch64"}
 SYSROOT=/usr/gnemul/$TARGET
 
-NUMJOBS=${NUMJOBS:-"8"}
-NUMJOBS="-j$NUMJOBS"
+if [ -z "$NUMJOBS" ]
+then
+	NUMJOBS=`getconf _NPROCESSORS_ONLN 2> /dev/null`
+	if [ $? -ne 0 ]
+	then
+		NUMJOBS=`grep -c ^processor /proc/cpuinfo 2> /dev/null`
+		[ $? -ne 0 ] && NUMJOBS=2
+	fi
+	NUMJOBS=$((NUMJOBS*2))
+fi
 
 if [ $# -eq 0 ]
 then
@@ -112,7 +120,7 @@ case "$stage" in
 
 #			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:$SYSROOT/usr/local/lib$LIBDIRSUFFIX:$SYSROOT/lib$LIBDIRSUFFIX:$SYSROOT/usr/lib$LIBDIRSUFFIX
 
-		make $NUMJOBS all-gcc all-target-libgcc
+		make -j$NUMJOBS all-gcc all-target-libgcc
 		make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
 		PKGDESC1="This compiler has no notion of a libc, so it just works for"
 		PKGDESC2="self-hosting binaries like the Linux kernels or bootloaders."
@@ -127,7 +135,7 @@ case "$stage" in
 			$ADD_OPTS
 
 #			--with-lib-path=/usr/$TRIPLET/lib$LIBDIRSUFFIX:/usr/local/lib$LIBDIRSUFFIX:/lib$LIBDIRSUFFIX:/usr/lib$LIBDIRSUFFIX
-		make $NUMJOBS
+		make -j$NUMJOBS
 		make DESTDIR=$(pwd)/root install
 		PKGDESC1="This compiler requires a set of target libraries installed"
 		PKGDESC2="in $SYSROOT to create user-land binaries."
