@@ -90,10 +90,9 @@ case "$system" in
 	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
-TARGET_LD_SUFFIX=""
 TRIPLET=${TARGET}-${vendor}-${os}
 case "$TARGET" in
-	x86_64|aarch64) TARGET_LD_SUFFIX="64" ;;
+	x86_64|aarch64) TBITS="64" ;;
 	armhf) TRIPLET=arm-${slackware}linux-gnueabihf
 		ADD_OPTS="--with-arch=armv7-a --with-float=hard" ;;
 	arm) TRIPLET=arm-${slackware}linux-gnueabi
