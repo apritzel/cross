@@ -1,0 +1,162 @@
+Quick instructions (using binary packages)
+===========================================
+
+Install the binary packages provided for Debian 7, Debian 8,
+Ubuntu 12.04, Ubuntu 14.04 and Slackware64-14.1 for an easy start.
+
+For Debian based distributions:
+# dpkg -i binutils-aarch64-linux-gnu_2.25-1_amd64.deb
+# dpkg --root /usr/gnemul/aarch64 -i kernel-headers_3.19-rc7-1_aarch64.deb
+# dpkg -i gcc-aarch64-linux-gnu_4.9.2-1_amd64.deb
+# dpkg --root /usr/gnemul/aarch64 -i glibc_2.20-1_aarch64.deb
+
+binutils and gcc are native packages and install into /usr of your
+host. kernel-headers and glibc are cross packages, containing files
+suitable for the target.
+**************************************************************************
+* DO NOT install those in your host's /usr, but put them in a separate   *
+* directory! Otherwise you may end up with your native libc overwritten! *
+* The different architecture name in the package should prevent that, so *
+* don't mess with dpkg unless you know what you do.                      *
+**************************************************************************
+
+Building yourself
+==================
+
+This is not crosstool(-ng). If you want all in one magic script and are
+not interested in tuning or understanding what's going on, use crosstool-ng
+and spend the rest of your time with your kids.
+
+If you don't have any or it's late at night anyway, read on ...
+
+(for having just the secret configure arguments and the make targets, see
+ below)
+
+Using the provided scripts for each package
+--------------------------------------------
+
+Coarse overview:
+	- build and install binutils
+	- copy and install kernel headers
+	- build and install stage1 gcc
+	  (this one cannot compile userland programs, but is good
+	   enough for the kernel or bootloaders)
+	- build and install cross-glibc
+	- build and install final gcc
+
+$ export TARGET=aarch64
+# supported targets so far:
+#	- aarch64 (ARM64)
+#	- arm (softfloat)
+#	- armhf (ARMv7 hard float)
+#	- mips64
+#	- openwrt (MIPS32 uclibc for OpenWRT)
+
+$ export BUILD=1
+#  the build number in case you need to rebuild one
+
+1) create build directories, we don't build inside the source dir
+2) build binutils (use latest upstream source):
+   $ cd binutils-aarch64
+   $ ../cross_build_binutils package /path/to/binutils/src
+3) install binutils (dpkg -i binutils-aarch64-linux-gnu_2.25-1.deb)
+4) create kernel headers
+
+
+Magic configure recipies for the initiated ones:
+
+Hackers summary:
+-----------------
+* use the same target, build, host arguments for binutils and gcc
+  target is your target, build and host are your current machine's ones
+* glibc is actually already cross-compiled, so host is now your target
+  machine's triplet while build is still your local machine's one. target
+  is not used in glibc cross compilation process (just for compilers)
+* choose and provide the same --with-sysroot= directory for binutils and gcc
+* don't forget to install the kernel headers for that arch into sysroot
+  before cross-compiling glibc
+* --disable-shared in binutils relates to the host's binaries, use it to
+  link libbfd statically into ld & friends and avoid clashes between different
+  versions of the the cross binutils and your native ones
+* always use --disable-bootstrap on both compiler builds
+* to produce a libc-less stage1 cross compiler, use:
+  --without-headers --with-newlib
+  --disable-shared --disable-threads
+  --disable-<various helper libraries>
+  don't worry, this is just for stage1, stage2 will fix this
+  You can use that compiler already to compile the kernel
+* for cross-building glibc, give it the installed kernel headers directory
+  with --with-headers=<sysroot>/usr/include
+* for a gcc stage2 build, install the glibc into <sysroot> first
+* on building gcc stage2, you can drop most of the limiting options from
+  the stage1 build, just keep:
+  --target= --host= --build=
+  --disable-bootstrap
+  --with-sysroot=<sysroot>
+
+
+Example configure options and make targets for a cross aarch64 compiler
+with /usr/gnemul/aarch64 as sysroot, assuming a non-multiarch build:  
+
+binutils:
+$ ../binutils-gdb/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
+	--target=aarch64-linux-gnu \
+	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
+	--enable-plugins --enable-threads --disable-nls
+	--enable-gold=yes --enable-ld=default \
+	--disable-bootstrap --disable-shared --enable-multilib \
+	--with-sysroot=/usr/gnemul/aarch64 \
+	--with-lib-path=/usr/aarch64-linux-gnu/lib64:/usr/gnemul/aarch64/usr/local/lib64:/usr/gnemul/aarch64/lib64:/usr/gnemul/aarch64/usr/lib64
+$ make && make DESTDIR=$(pwd)/root install
+
+cross gcc stage1:
+$ ../gcc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
+	--target=aarch64-linux-gnu \
+	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
+	--disable-shared --disable-threads --disable-bootstrap \
+	--disable-nls --enable-multilib \
+	--with-sysroot=/usr/gnemul/aarch64 \
+	--with-newlib --without-headers \
+	--enable-languages=c \
+	--disable-libgomp --disable-libitm --disable-libquadmath \
+	--disable-libsanitizer --disable-libssp --disable-libvtv \
+	--disable-libcilkrts --disable-libatomic --with-system-zlib
+
+(add: --with-arch= --with-cpu= --with-abi= --with-float= settings to set
+      default settings for the generated compiler, e.g.:
+	--with-arch=armv7-a --with-float=hard for an ARMv7-HF build)
+$ make all-gcc all-target-libgcc
+$ make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
+
+cross glibc:
+$ ../glibc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
+	libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes \
+	libc_cv_gnu89_inline=yes \
+	--host=aarch64-linux-gnu \
+	--build=x86_64-linux-gnu \
+	--without-cvs \
+	--disable-nls \
+	--disable-sanity-checks \
+	--enable-obsolete-rpc \
+	--disable-profile \
+	--disable-debug \
+	--without-selinux \
+	--with-tls \
+	--enable-kernel=3.7.0 \
+	--with-headers=/usr/gnemul/aarch64/usr/include \
+	--enable-hacker-mode
+
+
+	
+
+
+cross gcc stage2:
+$ ../gcc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
+	--target=aarch64-linux-gnu \
+	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
+	--enable-shared --disable-bootstrap \
+	--disable-nls --enable-multilib \
+	--with-sysroot=/usr/gnemul/aarch64 \
+	--enable-languages=c,c++ \
+	--with-system-zlib
+$ make && make DESTDIR=$(pwd)/root install
