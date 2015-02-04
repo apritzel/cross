@@ -50,11 +50,11 @@ then
 	SRC_PATH="$1"
 else
 	testdir=../${PKGNAM}.git
-	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	[ -f "$testdir/configure" ] && SRC_PATH="$testdir"
 	testdir=../${PKGNAM}
-	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	[ -f "$testdir/configure" ] && SRC_PATH="$testdir"
 	testdir=../${PKGNAM}-${VERSION}
-	[ -d "$testdir" ] && SRC_PATH="$testdir"
+	[ -f "$testdir/configure" ] && SRC_PATH="$testdir"
 fi
 
 if [ ! -d "$SRC_PATH" ]
