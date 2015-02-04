@@ -42,8 +42,20 @@ case "$1" in
 esac
 shift
 
-stage="$1"
-shift
+if [ $# -eq 0 -a -z "$skipbuild" ]
+then
+	echo "require stage1 or stage2 specifier"
+	usage
+	exit 1
+fi
+
+if [ -z "$skipbuild" ]
+then
+	stage="$1"
+	shift
+else
+	stage="skipbuild"
+fi
 
 if [ -d "$1" ]
 then
@@ -57,7 +69,7 @@ else
 	[ -f "$testdir/configure" ] && SRC_PATH="$testdir"
 fi
 
-if [ ! -d "$SRC_PATH" ]
+if [ ! -d "$SRC_PATH" -a -z "$skipbuild" ]
 then
 	echo "Error: could not find source directory."
 	echo "Give the source path as an argument."
@@ -146,7 +158,7 @@ case "$stage" in
 		PKGDESC2="in $SYSROOT to create user-land binaries."
 		PKGNAME="$PKGNAM"
 		;;
-	skip_build)
+	skipbuild)
 		PKGDESC1="This compiler has no notion of a libc, so it just works for"
 		PKGDESC2="self-hosting binaries like the Linux kernels or bootloaders."
 		PKGNAME="$PKGNAM-stage1"
