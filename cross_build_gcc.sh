@@ -118,8 +118,7 @@ HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 # CONFIGURE
 #
 
-rm -Rf ./root
-mkdir root
+[ "$stage" != "skipbuild" ] && rm -Rf ./root && mkdir root
 case "$stage" in
 	stage1)
 		$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
