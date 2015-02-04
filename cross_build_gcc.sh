@@ -1,4 +1,8 @@
 #!/bin/sh
+#
+# script for building cross GCC packages
+# skip to CONFIGURE line below for the interesting part
+#
 
 PKGNAM=gcc
 VERSION=${VERSION:-"4.9.2"}
@@ -86,6 +90,10 @@ case "$system" in
 		;;
 esac
 HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
+
+#
+# CONFIGURE
+#
 
 [ -d ./root ] && rm -Rf ./root
 mkdir root
