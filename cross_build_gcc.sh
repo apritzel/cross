@@ -136,8 +136,18 @@ case "$stage" in
 			--with-system-zlib \
 			$ADD_OPTS
 
-		make -j$NUMJOBS all-gcc all-target-libgcc
-		make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
+		if ! make -j$NUMJOBS all-gcc all-target-libgcc
+		then
+			echo -e "\nbuild failed, aborting."
+			exit 3
+		fi
+
+		if ! make DESTDIR=$(pwd)/root install-gcc install-target-libgcc
+		then
+			echo -e "\ninstallation failed, aborting."
+			exit 4
+		fi
+
 		PKGDESC1="This compiler has no notion of a libc, so it just works for"
 		PKGDESC2="self-hosting binaries like the Linux kernels or bootloaders."
 		PKGNAME="$PKGNAM-stage1"
@@ -150,8 +160,18 @@ case "$stage" in
 			--enable-shared --disable-nls --with-system-zlib \
 			$ADD_OPTS
 
-		make -j$NUMJOBS
-		make DESTDIR=$(pwd)/root install
+		if ! make -j$NUMJOBS
+		then
+			echo -e "\nbuild failed, aborting."
+			exit 3
+		fi
+
+		if ! make DESTDIR=$(pwd)/root install
+		then
+			echo -e "\ninstallation failed, aborting."
+			exit 4
+		fi
+
 		PKGDESC1="This compiler requires a set of target libraries installed"
 		PKGDESC2="in $SYSROOT to create user-land binaries."
 		PKGNAME="$PKGNAM"
@@ -166,6 +186,13 @@ case "$stage" in
 		exit 2
 		;;
 esac
+
+CROSSCC=./root/usr/bin/${TRIPLET}-gcc
+if [ ! -x $CROSSCC ] || [ `$CROSSCC -dumpversion` != "$VERSION" ]
+then
+	echo -e "\ncross compiler binary failing"
+	exit 5
+fi
 
 [ -z "$package" ] && exit 0
 
