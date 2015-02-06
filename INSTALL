@@ -62,7 +62,7 @@ $ export TARGET=aarch64
 
 Magic configure recipies for the initiated ones:
 
-Hackers summary:
+Hacker's hints:
 -----------------
 * use the same target, build, host arguments for binutils and gcc
   target is your target, build and host are your current machine's ones
