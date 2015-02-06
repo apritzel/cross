@@ -52,14 +52,11 @@ $ export TARGET=aarch64
 #	- mips64
 #	- openwrt (MIPS32 uclibc for OpenWRT)
 
-$ export BUILD=1
-#  the build number in case you need to rebuild one
-
 1) create build directories, we don't build inside the source dir
 2) build binutils (use latest upstream source):
    $ cd binutils-aarch64
    $ ../cross_build_binutils package /path/to/binutils/src
-3) install binutils (dpkg -i binutils-aarch64-linux-gnu_2.25-1.deb)
+3) install binutils (sudo dpkg -i binutils-aarch64-linux-gnu_2.25-1.deb)
 4) create kernel headers
 
 
