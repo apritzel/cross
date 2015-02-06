@@ -100,10 +100,12 @@ binutils:
 $ ../binutils-gdb/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
 	--target=aarch64-linux-gnu \
 	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
-	--enable-plugins --enable-threads --disable-nls
-	--enable-gold=yes --enable-ld=default \
-	--disable-bootstrap --disable-shared --enable-multilib \
 	--with-sysroot=/usr/gnemul/aarch64 \
+	--disable-bootstrap \
+	--disable-shared --disable-nls --enable-multilib \
+	--enable-threads \
+	--enable-plugins \
+	--enable-gold=yes --enable-ld=default \
 	--with-lib-path=/usr/aarch64-linux-gnu/lib64:/usr/gnemul/aarch64/usr/local/lib64:/usr/gnemul/aarch64/lib64:/usr/gnemul/aarch64/usr/lib64
 $ make && make DESTDIR=$(pwd)/root install
 
@@ -111,14 +113,16 @@ cross gcc stage1:
 $ ../gcc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
 	--target=aarch64-linux-gnu \
 	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
-	--disable-shared --disable-threads --disable-bootstrap \
-	--disable-nls --enable-multilib \
 	--with-sysroot=/usr/gnemul/aarch64 \
+	--disable-bootstrap \
+	--disable-shared --disable-nls --enable-multilib \
+	--disable-threads \
 	--with-newlib --without-headers \
 	--enable-languages=c \
+	--with-system-zlib \
 	--disable-libgomp --disable-libitm --disable-libquadmath \
 	--disable-libsanitizer --disable-libssp --disable-libvtv \
-	--disable-libcilkrts --disable-libatomic --with-system-zlib
+	--disable-libcilkrts --disable-libatomic
 
 (add: --with-arch= --with-cpu= --with-abi= --with-float= settings to set
       default settings for the generated compiler, e.g.:
@@ -144,17 +148,13 @@ $ ../glibc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
 	--with-headers=/usr/gnemul/aarch64/usr/include \
 	--enable-hacker-mode
 
-
-	
-
-
 cross gcc stage2:
 $ ../gcc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
 	--target=aarch64-linux-gnu \
 	--build=x86_64-linux-gnu --host=x86_64-linux-gnu \
-	--enable-shared --disable-bootstrap \
-	--disable-nls --enable-multilib \
 	--with-sysroot=/usr/gnemul/aarch64 \
+	--disable-bootstrap \
+	--enable-shared --disable-nls --enable-multilib \
 	--enable-languages=c,c++ \
 	--with-system-zlib
 $ make && make DESTDIR=$(pwd)/root install
