@@ -81,6 +81,7 @@ Hacker's hints:
   --disable-shared --disable-threads
   --disable-<various helper libraries>
   Don't worry, this is just for stage1, stage2 will fix this.
+  Use make all-gcc all-target-libgcc to avoid building yet impossible targets.
   You can use that compiler already to compile the kernel.
 * for cross-building glibc, give it the installed kernel headers directory
   with --with-headers=<sysroot>/usr/include
