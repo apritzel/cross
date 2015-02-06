@@ -163,3 +163,67 @@ Go ahead and test it by compiling helloworld.c, and let
 $ file hellow
 confirm that the compiled binary is for your target architecture.
 
+
+Cross-building libraries and programs
+======================================
+
+Depending on the cross-compiler friendliness of your package, you may
+end up with different solutions for cross-compilation:
+
+1) cross-compile enabled GNU autotools
+---------------------------------------
+Use --build=<the machine's triplet you build on>
+    --host=<the target's machine triplet>
+
+Don't omit --build or configure will not properly recognise that you
+are cross-compiling. That _sometimes_ work, but is wrong.
+In opposite to native builds, --build will not be auto-guessed (which
+is annoying), so you may want to use --build=$(gcc -dumpmachine) to
+let your native gcc tell configure the build machine's triplet.
+Please don't hardcode x86_64-linux-gnu in scripts ;-)
+
+Example:
+./configure --build=x86_64-linux-gnu --host=aarch64-linux-gnu ...
+
+2) cross-compile enabled non-autotools
+---------------------------------------
+Put your target's machine triplet _and a trailing hyphen_ into
+the CROSS_COMPILE environment variable.
+$ export CROSS_COMIPLE=aarch64-linux-gnu-
+$ make
+Some packages (Linux, Xen, u-boot come to mind) expect a specifier for the
+target architecture in the ARCH environment variable.
+$ make ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- ....
+This ARCH specifier name may differ from the architecture name in the
+GNU triplet (for instance Xen uses arm32 instead of arm, Linux arm64 instead
+of aarch64).
+
+3) half-way sane Makefiles
+---------------------------
+Most Makefiles honour the CC environment variable to point to the actual
+system's compiler. So you either set CC=aarch64-linux-gnu-gcc before calling
+make or add a line saying "CC=${CROSS_COMPILE}gcc" somewhere at the top of
+the Makefile.
+Some Makefiles also use LD, AS, AR and possibly other variables to get
+the tools actual name, so you may end up specifying those as well.
+Please note that this does not always end up in a working target's binary,
+as the Makefile is probably not aware of cross-compilation and may use tests
+run on your build machine to (mis)guess target's behaviour.
+pkg-config calls for instance would query your build machine's library and
+include files to detect availability of libraries, which usually does
+not give you a clue about the situation on the target machine.
+You may want to either replace the pkg-config calls with the output of it
+on the target's machine (quick, but dirty) or teach pkg-config about the
+location of the target machine's .pc files. This will most likely get you
+the wrong include directory path (relative to SYSROOT), but it may work
+nevertheless if that matches your host's path, which is quite likely. If in
+doubt or in a hurry, install the library also on your host to get probably
+the same header files. YMMV ;-)
+
+
+4) totally ignorant packages
+-----------------------------
+Go ahead and replace any reference of "cc" or "gcc" in the Makefile with
+${CC} and add a "CC=${CROSS_COMPILE}gcc" somewhere at the top of the Makefile.
+The use approach 3).
+
