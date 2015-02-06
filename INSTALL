@@ -158,3 +158,8 @@ $ ../gcc/configure --prefix=/usr --with-gnu-ld --with-gnu-as \
 	--enable-languages=c,c++ \
 	--with-system-zlib
 $ make && make DESTDIR=$(pwd)/root install
+
+Go ahead and test it by compiling helloworld.c, and let
+$ file hellow
+confirm that the compiled binary is for your target architecture.
+
