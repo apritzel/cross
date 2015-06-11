@@ -206,7 +206,7 @@ fi
 
 if [ "$package" = "slackware" ]
 then
-	PKGNAME="${PKGNAME}-${TRIPLET}"
+	PKGNAME="${PKGNAME}-${TARGET}"
 	mkdir root/install
 	cat > root/install/slack-desc << _EOF
 $PKGNAME: $TARGET-gcc (GNU C cross compiler)
