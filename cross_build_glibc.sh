@@ -69,7 +69,7 @@ esac
 BITNESS=""
 TRIPLET=${TARGET}-${vendor}-${os}
 case "$TARGET" in
-        x86_64|aarch64) BITNESS="64";;
+        x86_64|aarch64|powerpc64|powerpc64le) BITNESS="64";;
         armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
         arm) TRIPLET=arm-${slackware}linux-gnueabi;;
         openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
