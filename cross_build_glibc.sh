@@ -89,6 +89,7 @@ HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 CFLAGS="-O2 -DBOOTSTRAP_GCC" \
 $SRC_PATH/configure \
   libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_gnu89_inline=yes \
+  libc_cv_ssp=no \
   $HOST_OPTS \
   --host=$TRIPLET \
   --build=$HTRIPLET \
