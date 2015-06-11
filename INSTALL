@@ -91,7 +91,10 @@ Hacker's hints:
   --target= --host= --build=
   --disable-bootstrap
   --with-sysroot=<sysroot>
-
+* check for hidden errors: sometimes there is an error happening in the build
+  process somewhere and it scrolls by, leaving you with a partial build.
+  Especially true with make install, where you end up with not all files
+  installed, leading to all kind of strange errors later.
 
 Example configure options and make targets for a cross aarch64 compiler
 with /usr/gnemul/aarch64 as sysroot, assuming a non-multiarch build:  
