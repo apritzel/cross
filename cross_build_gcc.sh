@@ -5,7 +5,7 @@
 #
 
 PKGNAM=gcc
-VERSION=${VERSION:-"4.9.2"}
+VERSION=${VERSION:-"5.1.0"}
 BUILD=${BUILD:-"1"}
 CC=${CC:-"gcc"}
 

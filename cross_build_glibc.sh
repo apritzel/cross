@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PKGNAM=glibc
-VERSION=${VERSION:-"2.20"}
+VERSION=${VERSION:-"2.21"}
 BUILD=${BUILD:-"1"}
 CC=${CC:-"gcc"}
 
