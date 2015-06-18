@@ -70,6 +70,7 @@ BITNESS=""
 TRIPLET=${TARGET}-${vendor}-${os}
 case "$TARGET" in
         x86_64|aarch64|powerpc64|powerpc64le) BITNESS="64";;
+	x32) TRIPLET=x86_64-${slackware}linux-gnux32; BITNESS="x32"; ABI_VARIANT="-mx32";;
         armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
         arm) TRIPLET=arm-${slackware}linux-gnueabi;;
         openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
@@ -86,6 +87,7 @@ else
 fi
 HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 
+export CC="$CC $ABI_VARIANT"
 CFLAGS="-O2 -DBOOTSTRAP_GCC" \
 $SRC_PATH/configure \
   libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_gnu89_inline=yes \
