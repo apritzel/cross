@@ -92,8 +92,8 @@ esac
 
 TRIPLET=${TARGET}-${vendor}-${os}
 case "$TARGET" in
-	x86_64|aarch64) TBITS="64" ;;
-	x32) TRIPLET="x86_64-${slackware}linux-gnux32" ;;
+	x32) TRIPLET=x86_64-${slackware}linux-gnux32
+		ADD_OPTS="--with-multilib-list=\"m64 m32 mx32\" --without-isl" ;;
 	armhf) TRIPLET=arm-${slackware}linux-gnueabihf
 		ADD_OPTS="--with-arch=armv7-a --with-float=hard" ;;
 	arm) TRIPLET=arm-${slackware}linux-gnueabi
