@@ -81,14 +81,16 @@ case "$system" in
 	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
-TBITS=""
-TRIPLET=${TARGET}-${vendor}-${os}
-case "$TARGET" in
-	x86_64|aarch64) TBITS="64";;
-	armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
-	arm) TRIPLET=arm-${slackware}linux-gnueabi;;
-	openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
-esac
+if [ -z "$TRIPLET" ]
+then
+	TRIPLET=${TARGET}-${vendor}-${os}
+	case "$TARGET" in
+		armhf) TRIPLET=arm-${slackware}linux-gnueabihf;;
+		arm) TRIPLET=arm-${slackware}linux-gnueabi;;
+		openwrt) TRIPLET=mips-openwrt-linux-uclibc;;
+		x32) TRIPLET=x86_64-${slackware}linux-gnux32;;
+	esac
+fi
 
 HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
 case "$system" in
