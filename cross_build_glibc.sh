@@ -3,7 +3,6 @@
 PKGNAM=glibc
 VERSION=${VERSION:-"2.21"}
 BUILD=${BUILD:-"1"}
-CC=${CC:-"gcc"}
 
 TARGET=${TARGET:-"aarch64"}
 SYSROOT=/usr/gnemul/$TARGET
@@ -59,7 +58,7 @@ case "$MARCH" in
 	x86_64) [ "$system" = "debian" ] && MARCH="amd64" ;;
 	arm*) MARCH=arm ;;
 esac
-HTRIPLET=`$CC -dumpmachine`
+HTRIPLET=`gcc -dumpmachine`
 
 case "$system" in
 	slackware) vendor="slackware"; os="linux"; slackware="slackware-" ;;
@@ -87,7 +86,9 @@ else
 fi
 HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 
-export CC="$CC $ABI_VARIANT"
+CC=${CC:-"${TRIPLET}-gcc"}
+[ -n "$ABI_VARIANT" ] && export CC="$CC $ABI_VARIANT"
+
 CFLAGS="-O2 -DBOOTSTRAP_GCC" \
 $SRC_PATH/configure \
   libc_cv_forced_unwind=yes libc_cv_c_cleanup=yes libc_cv_gnu89_inline=yes \
