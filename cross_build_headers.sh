@@ -32,12 +32,6 @@ else
 	package=n
 fi
 
-MARCH=$( uname -m )
-case "$MARCH" in
-	i?86) MARCH=i486 ;;
-	arm*) MARCH=arm ;;
-esac
-
 LARCH=$TARGET
 case "$TARGET" in
 	i?86) TARGET=i486; LARCH="x86" ;;
