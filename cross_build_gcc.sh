@@ -90,23 +90,17 @@ case "$system" in
 	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
-if [ -z "$TRIPLET" ]
-then
-	TRIPLET=${TARGET}-${vendor}-${os}
-	case "$TARGET" in
-		arm) TRIPLET=arm-${slackware}linux-gnueabi ;;
-		armhf) TRIPLET=arm-${slackware}linux-gnueabihf ;;
-		openwrt) TRIPLET=mips-openwrt-linux-uclibc ;;
-		x32) TRIPLET=x86_64-${slackware}linux-gnux32 ;;
-	esac
-fi
-
 case "$TARGET" in
-	x32) ADD_OPTS="--with-multilib-list=\"m64 m32 mx32\" --without-isl" ;;
-	armhf) ADD_OPTS="--with-arch=armv6 --with-float=hard --without-isl" ;;
-	arm) ADD_OPTS="--with-float=softfp" ;;
+	x32) [ -z "$TRIPLET" ] && TRIPLET=x86_64-${slackware}linux-gnux32
+		ADD_OPTS="--with-multilib-list=\"m64 m32 mx32\" --without-isl" ;;
+	armhf) [ -z "$TRIPLET" ] && TRIPLET=arm-${slackware}linux-gnueabihf
+		ADD_OPTS="--with-arch=armv7-a --with-float=hard" ;;
+	arm) [ -z "TRIPLET" ] && TRIPLET=arm-${slackware}linux-gnueabi
+		ADD_OPTS="--with-float=softfp" ;;
+	openwrt) [ -z "$TRIPLET" ] && TRIPLET=mips-openwrt-linux-uclibc ;;
 	mips64) ADD_OPTS="--with-abi=64" ;;
 esac
+[ -z "$TRIPLET" ] && TRIPLET=${TARGET}-${vendor}-${os}
 
 HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
 case "$system" in
