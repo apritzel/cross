@@ -90,15 +90,21 @@ case "$system" in
 	*) vendor="linux"; os="gnu"; HBITS="" ;;
 esac
 
-TRIPLET=${TARGET}-${vendor}-${os}
+if [ -z "$TRIPLET" ]
+then
+	TRIPLET=${TARGET}-${vendor}-${os}
+	case "$TARGET" in
+		arm) TRIPLET=arm-${slackware}linux-gnueabi ;;
+		armhf) TRIPLET=arm-${slackware}linux-gnueabihf ;;
+		openwrt) TRIPLET=mips-openwrt-linux-uclibc ;;
+		x32) TRIPLET=x86_64-${slackware}linux-gnux32 ;;
+	esac
+fi
+
 case "$TARGET" in
-	x32) TRIPLET=x86_64-${slackware}linux-gnux32
-		ADD_OPTS="--with-multilib-list=\"m64 m32 mx32\" --without-isl" ;;
-	armhf) TRIPLET=arm-${slackware}linux-gnueabihf
-		ADD_OPTS="--with-arch=armv7-a --with-float=hard" ;;
-	arm) TRIPLET=arm-${slackware}linux-gnueabi
-		ADD_OPTS="--with-float=softfp" ;;
-	openwrt) TRIPLET=mips-openwrt-linux-uclibc ;;
+	x32) ADD_OPTS="--with-multilib-list=\"m64 m32 mx32\" --without-isl" ;;
+	armhf) ADD_OPTS="--with-arch=armv6 --with-float=hard --without-isl" ;;
+	arm) ADD_OPTS="--with-float=softfp" ;;
 	mips64) ADD_OPTS="--with-abi=64" ;;
 esac
 
