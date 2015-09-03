@@ -1,25 +1,3 @@
-Quick instructions (using binary packages)
-===========================================
-
-Install the binary packages provided for Debian 7, Debian 8,
-Ubuntu 12.04, Ubuntu 14.04 and Slackware64-14.1 for an easy start.
-
-For Debian based distributions:
-# dpkg -i binutils-aarch64-linux-gnu_2.25-1_amd64.deb
-# dpkg --root /usr/gnemul/aarch64 -i kernel-headers_3.19-rc7-1_aarch64.deb
-# dpkg -i gcc-aarch64-linux-gnu_4.9.2-1_amd64.deb
-# dpkg --root /usr/gnemul/aarch64 -i glibc_2.20-1_aarch64.deb
-
-binutils and gcc are native packages and install into /usr of your
-host. kernel-headers and glibc are cross packages, containing files
-suitable for the target.
-**************************************************************************
-* DO NOT install those in your host's /usr, but put them in a separate   *
-* directory! Otherwise you may end up with your native libc overwritten! *
-* The different architecture name in the package should prevent that, so *
-* don't mess with dpkg unless you know what you do.                      *
-**************************************************************************
-
 Building yourself
 ==================
 
