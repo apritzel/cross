@@ -72,6 +72,7 @@ case "$HARCH" in
 	i?86) HARCH=i486 ;;
 	aarch64) HBITS="64" ;;
 	x86_64) HBITS="64"; [ "$system" = "debian" ] && HARCH="amd64" ;;
+	armv7l) HARCH=armhf;;
 	arm*) HARCH=arm ;;
 esac
 HTRIPLET=`$CC -dumpmachine`
