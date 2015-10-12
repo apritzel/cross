@@ -156,7 +156,7 @@ case "$stage" in
 		$SRC_PATH/configure $HOST_OPTS --target=$TRIPLET \
 			--host=$HTRIPLET --build=$HTRIPLET \
 			--with-sysroot=$SYSROOT --disable-bootstrap \
-			--enable-languages=c --enable-multilib \
+			--enable-languages=c,c++ --enable-multilib \
 			--enable-shared --disable-nls --with-system-zlib \
 			$ADD_OPTS
 
