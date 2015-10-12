@@ -40,6 +40,7 @@ case "$TARGET" in
 	arm*)		LARCH=arm ;;
 	mips64)		LARCH=mips ;;
 	powerpc*)	LARCH=powerpc ;;
+	sparc*)		LARCH=sparc ;;
 esac
 
 TMPDIR=/tmp/package-$PKGNAM
