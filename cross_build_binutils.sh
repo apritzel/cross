@@ -92,18 +92,25 @@ then
 	esac
 fi
 
+case "$TARGET" in
+	x32) TBITS="x32" ;;
+	*64) TBITS="64" ;;
+	*)   TBITS="" ;;
+esac
+
 HOST_OPTS="--prefix=/usr --with-gnu-ld --with-gnu-as"
 case "$system" in
 	slackware)
-		LIBDIR="lib$HBITS"
+		LIBDIR="lib$TBITS"
 		HOST_OPTS="$HOST_OPTS --disable-multiarch"
+		HOST_OPTS="$HOST_OPTS --libdir=/usr/lib$HBITS"
 		;;
 	debian)
-		LIBDIR="lib/$HTRIPLET"
+		LIBDIR="lib/$TRIPLET"
 		HOST_OPTS="$HOST_OPTS --enable-multiarch"
+		HOST_OPTS="$HOST_OPTS --libdir=/usr/lib/$HTRIPLET"
 		;;
 esac
-HOST_OPTS="$HOST_OPTS --libdir=/usr/$LIBDIR"
 
 LIBPATH=/usr/$TRIPLET/lib$HBITS
 LIBPATH="$LIBPATH:$SYSROOT/usr/local/$LIBDIR"
