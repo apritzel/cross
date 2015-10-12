@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PKGNAM=glibc
-VERSION=${VERSION:-"2.21"}
+VERSION=${VERSION:-"2.22"}
 BUILD=${BUILD:-"1"}
 
 TARGET=${TARGET:-"aarch64"}

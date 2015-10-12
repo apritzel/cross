@@ -5,7 +5,7 @@
 #
 
 PKGNAM=binutils
-VERSION=${VERSION:-"2.25"}
+VERSION=${VERSION:-"2.25.1"}
 BUILD=${BUILD:-"1"}
 CC=${CC:-"gcc"}
 
