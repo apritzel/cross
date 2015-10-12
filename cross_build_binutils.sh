@@ -120,6 +120,7 @@ then
 		--build=$HTRIPLET --host=$HTRIPLET \
 		--enable-plugins --enable-threads --disable-nls \
 		--enable-gold=yes --enable-ld=default \
+		--enable-64-bit-bfd \
 		--disable-bootstrap --disable-shared --enable-multilib \
 		--with-sysroot=$SYSROOT \
 		--with-lib-path=$LIBPATH
