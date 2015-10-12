@@ -52,12 +52,6 @@ then
         exit 1
 fi
 
-MARCH=`uname -m`
-case "$MARCH" in
-	i?86) MARCH=i486 ;;
-	x86_64) [ "$system" = "debian" ] && MARCH="amd64" ;;
-	arm*) MARCH=arm ;;
-esac
 HTRIPLET=`gcc -dumpmachine`
 
 case "$system" in
