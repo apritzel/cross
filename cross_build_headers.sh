@@ -41,6 +41,7 @@ case "$TARGET" in
 	mips64)		LARCH=mips ;;
 	powerpc*)	LARCH=powerpc ;;
 	sparc*)		LARCH=sparc ;;
+	hppa*)		LARCH=parisc ;;
 esac
 
 TMPDIR=/tmp/package-$PKGNAM
