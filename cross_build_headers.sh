@@ -3,7 +3,7 @@
 PKGNAM=kernel-headers
 BUILD=${BUILD:-1}
 TARGET=${TARGET:-aarch64}
-SYSROOT=/usr/gnemul/$TARGET
+TMP=${TMP:-/tmp}
 
 if [ ! -d arch -o ! -r Makefile -o ! -r Kconfig ]; then
 	echo "looks like $(pwd) is not a kernel source directory"
@@ -44,32 +44,30 @@ case "$TARGET" in
 	hppa*)		LARCH=parisc ;;
 esac
 
-TMPDIR=/tmp/package-$PKGNAM
+TMPDIR=$TMP/package-$PKGNAM
 rm -Rf $TMPDIR
 mkdir -p $TMPDIR
 
-make O=$TMPDIR ARCH=$LARCH INSTALL_HDR_PATH=./$SYSROOT/usr headers_install
+make O=$TMPDIR ARCH=$LARCH INSTALL_HDR_PATH=./usr headers_install
 rm -Rf $TMPDIR/arch $TMPDIR/include $TMPDIR/scripts
 find $TMPDIR -name .install -o -name ..install.cmd | xargs rm -f
-mv $TMPDIR/$SYSROOT/usr/include/asm{,-$LARCH}
-ln -s asm-$LARCH $TMPDIR/$SYSROOT/usr/include/asm
+mv $TMPDIR/usr/include/asm{,-$LARCH}
+ln -s asm-$LARCH $TMPDIR/usr/include/asm
 
 [ "$package" = "y" ] || exit 0
 
 mkdir $TMPDIR/install
 cat > $TMPDIR/install/slack-desc << _EOF
-$PKGNAM-$TARGET: kernel-headers for $TARGET (Linux kernel include files)
-$PKGNAM-$TARGET:
-$PKGNAM-$TARGET: These are the include files from the Linux kernel.
-$PKGNAM-$TARGET:
-$PKGNAM-$TARGET: You'll need these to cross-compile most system software
-$PKGNAM-$TARGET: for Linux. Installed in a directory used for cross-
-$PKGNAM-$TARGET: compilation to not interfer with the system headers.
-$PKGNAM-$TARGET:
-$PKGNAM-$TARGET: v$VERSION for $TARGET by Andre Przywara <osp@andrep.de>
-$PKGNAM-$TARGET:
+$PKGNAM: kernel-headers (Linux kernel include files)
+$PKGNAM:
+$PKGNAM: These are the include files from the Linux kernel.
+$PKGNAM:
+$PKGNAM: You'll need these to compile most system software for Linux.
+$PKGNAM:
+$PKGNAM: v$VERSION for $TARGET packaged by Andre Przywara <osp@andrep.de>
+$PKGNAM:
 _EOF
 
 (	cd $TMPDIR; \
-	makepkg -c y -l y /tmp/$PKGNAM-$TARGET-$VERSION-noarch-$BUILD.txz \
+	makepkg -c y -l y /tmp/$PKGNAM-$VERSION-$TARGET-$BUILD.txz \
 )
