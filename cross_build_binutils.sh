@@ -154,8 +154,7 @@ then
 	CROSSLD=./root/usr/bin/${TRIPLET}-ld
 	if [ ! -x $CROSSLD ] || $CROSSLD -v | grep -qv "$VERSION\$"
 	then
-		echo -e "\ncross ld binary failing"
-		exit 5
+		echo -e "\ncross ld binary version mismatch"
 	fi
 fi
 
