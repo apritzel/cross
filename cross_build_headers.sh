@@ -36,7 +36,7 @@ LARCH=$TARGET
 case "$TARGET" in
 	i?86)		TARGET=i486; LARCH="x86" ;;
 	x86_64|x32)	LARCH="x86" ;;
-	arm64|aarch64)	LARCH="arm64" ;;
+	arm64|aarch64*)	LARCH="arm64" ;;
 	arm*)		LARCH=arm ;;
 	mips64)		LARCH=mips ;;
 	powerpc*)	LARCH=powerpc ;;
